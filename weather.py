@@ -1,7 +1,10 @@
 import zulip
 import forecastio
+import datetime
+import calendar
 import requests
 import os
+
 
 
 class ZulipBot(object):
@@ -30,7 +33,7 @@ class ZulipBot(object):
             return
 
         if (content[0] == 'weather') or content[0] == '@**Weather**':
-            content = self.weather.get_current()
+            content = self.weather.get_tomorrow()
 
 
             if msg['type'] == 'stream':
@@ -54,10 +57,11 @@ class Weather(object):
     def __init__(self):
         self.api_key = os.environ['FORECASTIO_KEY']
         self.lat, self.lng = 40.72078, -74.001119 # 455 Broadway
+        self.time = None
         self.client = self.setup()
         self.icons = {'clear-day': ':sun_with_face:',
                       'clear-night': ':stars:',
-                      'rain': ':cloud:\n:droplet:',
+                      'rain': '\x{2614}',
                       'snow': ':snowman:',
                       'sleet': '',
                       'wind': ':wind_chime:',
@@ -67,17 +71,23 @@ class Weather(object):
                       'partly-coudy-night': ':crescent_moon:\n:cloud:'}
 
     def setup(self):
-        return forecastio.load_forecast(self.api_key, self.lat, self.lng)
+        return forecastio.load_forecast(self.api_key, self.lat, self.lng, time=self.time)
     
     def get_current_icon(self):
         return self.client.currently().icon
 
     def get_current(self):
-        return '{} {}'.format(self.client.currently().summary, self.icons[self.client.currently().icon])
+        return '{}\n{}'.format(self.client.currently().summary, self.icons[self.client.currently().icon])
 
+    def set_tomorrow(self):
+        tomorrow = datetime.datetime.now() + datetime.timedelta(days=1)
+        self.time = tomorrow
 
+    def get_tomorrow(self):
+        self.set_tomorrow()
+        self.setup()
+        return '{}\n{}'.format(self.client.hourly().summary, self.icons[self.client.hourly().icon])
 
-    # def get_tomorrow(self):
 
     # def get_week(self):
 
