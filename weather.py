@@ -30,10 +30,7 @@ class ZulipBot(object):
             return
 
         if (content[0] == 'weather') or content[0] == '@**Weather**':
-            daily = self.weather.setup()
-            daily = daily.daily()
-
-            content = daily.data[0].temperatureMin
+            content = self.weather.get_current()
 
 
             if msg['type'] == 'stream':
@@ -47,7 +44,7 @@ class ZulipBot(object):
                 self.client.send_message({
                     'type': 'private',
                     'to': msg['sender_email'],
-                    'content': translation.translated_text
+                    'content': content
                 })
             else:
                 return
@@ -56,10 +53,33 @@ class ZulipBot(object):
 class Weather(object):
     def __init__(self):
         self.api_key = os.environ['FORECASTIO_KEY']
-        self.lat, self.lng = 40.72078, -74.001119
-        
+        self.lat, self.lng = 40.72078, -74.001119 # 455 Broadway
+        self.client = self.setup()
+        self.icons = {'clear-day': ':sun_with_face:',
+                      'clear-night': ':stars:',
+                      'rain': ':cloud:\n:droplet:',
+                      'snow': ':snowman:',
+                      'sleet': '',
+                      'wind': ':wind_chime:',
+                      'fog': ':foggy:',
+                      'cloudy': ':cloud:',
+                      'partly-cloudy-day': ':partly_sunny:',
+                      'partly-coudy-night': ':crescent_moon:\n:cloud:'}
+
     def setup(self):
         return forecastio.load_forecast(self.api_key, self.lat, self.lng)
+    
+    def get_current_icon(self):
+        return self.client.currently().icon
+
+    def get_current(self):
+        return '{} {}'.format(self.client.currently().summary, self.icons[self.client.currently().icon])
+
+
+
+    # def get_tomorrow(self):
+
+    # def get_week(self):
 
 def main():
     bot = ZulipBot()
