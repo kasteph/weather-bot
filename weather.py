@@ -34,12 +34,22 @@ class ZulipBot(object):
 
         if (content[0] == 'weather') or content[0] == '@**Weather**':
 
-            if content[1].lower() == 'week':
-                content = self.weather.get_week()
-            elif content[1].lower() == 'tomorrow':
-                content = self.weather.get_tomorrow()
+            prompts = {
+                'now': self.weather.get_current,
+                'tomorrow': self.weather.get_tomorrow,
+                'week': self.weather.get_week
+            }
+
+
+            if len(content) < 2 or content[1].lower() not in prompts.keys():
+                prompt = 'now'
             else:
-                content = self.weather.get_current()
+                prompt = content[1].lower()
+                
+
+            content = prompts[prompt]()
+
+
 
 
             if msg['type'] == 'stream':
@@ -91,12 +101,11 @@ class Weather(object):
 
     def get_tomorrow(self):
         self.set_tomorrow()
-        self.setup()
-        return '{}\n{}'.format(self.client.hourly().summary, self.icons[self.client.hourly().icon])
-
+        client = forecastio.load_forecast(self.api_key, self.lat, self.lng, time=self.time)
+        return '{}\n{}'.format(client.hourly().summary, self.icons[self.client.hourly().icon])
 
     def get_week(self):
-        week = self.setup().daily()
+        week = self.client.daily()
         return '{}\n{}'.format(week.summary.encode('utf-8'), self.icons[week.icon])
 
 def main():
@@ -105,13 +114,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-# current = forecast.currently()
-
-# print current.summary
-
-# daily = forecast.daily()
-
-# print daily.data[0].temperatureMin
-# print daily.data[0].temperatureMinTime
