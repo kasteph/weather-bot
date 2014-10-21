@@ -33,7 +33,13 @@ class ZulipBot(object):
             return
 
         if (content[0] == 'weather') or content[0] == '@**Weather**':
-            content = self.weather.get_tomorrow()
+
+            if content[1].lower() == 'week':
+                content = self.weather.get_week()
+            elif content[1].lower() == 'tomorrow':
+                content = self.weather.get_tomorrow()
+            else:
+                content = self.weather.get_current()
 
 
             if msg['type'] == 'stream':
@@ -61,7 +67,7 @@ class Weather(object):
         self.client = self.setup()
         self.icons = {'clear-day': ':sun_with_face:',
                       'clear-night': ':stars:',
-                      'rain': '\x{2614}',
+                      'rain': ':cloud:\n:potable_water:',
                       'snow': ':snowman:',
                       'sleet': '',
                       'wind': ':wind_chime:',
@@ -89,7 +95,9 @@ class Weather(object):
         return '{}\n{}'.format(self.client.hourly().summary, self.icons[self.client.hourly().icon])
 
 
-    # def get_week(self):
+    def get_week(self):
+        week = self.setup().daily()
+        return '{}\n{}'.format(week.summary.encode('utf-8'), self.icons[week.icon])
 
 def main():
     bot = ZulipBot()
