@@ -13,4 +13,4 @@ is `now`, `today`, `tomorrow`, or `week`, and `location` is the name of the plac
 If the query is only `@**Weather**`, `weather`, or `[@**Weather**|weather] [when]`,
 it defaults to returning the weather of 455 Broadway, New York, NY.
 
-[!Screenshot](http://i.imgur.com/YcOKZcV.png)
+![Screenshot](http://i.imgur.com/YcOKZcV.png)
